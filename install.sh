@@ -2,7 +2,7 @@
 
 . .env
 
-if [ $? = 0 ]; then
+if [ ! $? = 0 ]; then
     echo "Verifique o arquivo de variaveis de ambiente. Não foi possível carregalo."
     exit 2;
 fi
