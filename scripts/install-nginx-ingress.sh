@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# Define a versão do Nginx Ingress
-NGINX_INGRESS_RELEASE="release-3.0"
-
 echo -n "Instalando o Nginx Ingress "
 kubectl apply -f https://raw.githubusercontent.com/nginxinc/kubernetes-ingress/${NGINX_INGRESS_RELEASE}/deployments/common/ns-and-sa.yaml > /dev/null 2>&1
 kubectl apply -f https://raw.githubusercontent.com/nginxinc/kubernetes-ingress/${NGINX_INGRESS_RELEASE}/deployments/rbac/rbac.yaml > /dev/null 2>&1

@@ -1,9 +1,5 @@
 #!/bin/bash
 
-# Versão a ser instalada
-K3S_VERSION="v1.24.9+k3s2"
-
-
 echo -n "Instalando o K3S "
 curl -sfL https://get.k3s.io |  INSTALL_K3S_VERSION=${K3S_VERSION} INSTALL_K3S_EXEC="--disable traefik" sh -s - server > /tmp/k3sinstall 2>&1
 if [ ! $? = 0 ]; then

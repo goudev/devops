@@ -1,12 +1,5 @@
 #!/bin/bash
 
-
-RANCHER_DOMAIN="rancher.mydomain.com"
-RANCHER_EMAIL_CERTDOMAIN="my-email@domain.com"
-RANCHER_PASSWORD="my-password"
-RANCHER_VERSION="stable"
-
-
 echo -n "Adicionando repositórios Helm "
 helm repo add rancher-stable https://releases.rancher.com/server-charts/stable > /tmp/helm.log 2>&1
 if [ $? = 0 ]; then
