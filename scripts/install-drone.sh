@@ -13,7 +13,7 @@ export REGISTRY_URL
 
 echo -n "Instalando serviço do Drone"
 envsubst < artefatos/drone.yaml > /tmp/drone.yaml
-delete -f /tmp/drone.yaml
+rm -f /tmp/drone.yaml
 kubectl apply -f /tmp/drone.yaml > /tmp/droneinstall.log 2>&1
 if [ $? = 0 ]; then
     echo "[OK]"

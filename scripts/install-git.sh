@@ -5,7 +5,7 @@ export LETSENCRYPT_EMAIL
 
 echo -n "Instalando serviço do Gitea"
 envsubst < artefatos/gitea.yaml > /tmp/gitea.yaml
-delete -f /tmp/gitea.yaml
+rm -f /tmp/gitea.yaml
 kubectl apply -f /tmp/gitea.yaml > /tmp/giteainstall.log 2>&1
 if [ $? = 0 ]; then
     echo "[OK]"

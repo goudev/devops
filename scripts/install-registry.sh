@@ -13,7 +13,7 @@ export REGISTRY_URL
 
 echo -n "Instalando serviço de Registry"
 envsubst < artefatos/registry.yaml > /tmp/registry.yaml
-delete -f /tmp/registry.yaml
+rm -f /tmp/registry.yaml
 kubectl apply -f /tmp/registry.yaml > /tmp/droneinstall.log 2>&1
 if [ $? = 0 ]; then
     echo "[OK]"
