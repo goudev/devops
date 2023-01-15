@@ -1,0 +1,191 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: registry
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: registry-ui
+  namespace: registry
+data:
+  DELETE_IMAGES: "false"
+  NGINX_PROXY_PASS_URL: https://${REGISTRY_URL}
+  PULL_URL: https://${REGISTRY_URL}
+  REGISTRY_TITLE: Repositório de imagens
+  REGISTRY_URL: https://${REGISTRY_URL}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: registry-ui
+  namespace: registry
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: registry-ui
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: registry-ui
+        version: v1
+    spec:
+      containers:
+      - envFrom:
+        - configMapRef:
+            name: registry-ui
+            optional: false
+        image: joxit/docker-registry-ui
+        imagePullPolicy: Always
+        name: registry-ui
+        ports:
+        - containerPort: 80
+          name: http
+          protocol: TCP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: registry
+  namespace: registry
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: registry
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: registry
+        version: v1
+    spec:
+      containers:
+      - image: registry:2
+        imagePullPolicy: Always
+        name: registry
+        ports:
+        - containerPort: 5000
+          name: http
+          protocol: TCP
+        volumeMounts:
+        - mountPath: /certs
+          name: certs-vol
+        - mountPath: /var/lib/registry
+          name: registry-vol
+      volumes:
+      - hostPath:
+          path: /opt/certs
+          type: DirectoryOrCreate
+        name: certs-vol
+      - hostPath:
+          path: /opt/registry
+          type: DirectoryOrCreate
+        name: registry-vol
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: registry-ui
+  namespace: registry
+spec:
+  internalTrafficPolicy: Cluster
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: registry-ui
+    version: v1
+  sessionAffinity: None
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: registry
+  namespace: registry
+spec:
+  internalTrafficPolicy: Cluster
+  ports:
+  - name: http
+    port: 5000
+    protocol: TCP
+    targetPort: 5000
+  selector:
+    app: registry-ui
+    version: v1
+  sessionAffinity: None
+  type: ClusterIP
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: letsencrypt
+  namespace: registry
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: ${LETSENCRYPT_EMAIL}
+    privateKeySecretRef:
+      name: account-key
+    solvers:
+    - http01:
+       ingress:
+         class: nginx
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: registry
+  namespace: registry
+spec:
+  secretName: registry-certificate
+  issuerRef:
+    name: letsencrypt
+  dnsNames:
+  - ${REGISTRY_URL}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: registry
+  namespace: registry
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    cert-manager.io/issuer: "letsencrypt"
+    nginx.ingress.kubernetes.io/affinity: "cookie"
+    nginx.ingress.kubernetes.io/proxy-body-size: "300m"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "1800"
+    nginx.ingress.kubernetes.io/proxy-next-upstream-timeout: "1800"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "1800"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "1800"
+    nginx.ingress.kubernetes.io/session-cookie-hash: "sha1"
+spec:
+  tls:
+  - hosts:
+      - ${REGISTRY_URL}
+    secretName: registry-certificate
+  rules:
+  - host: ${REGISTRY_URL}
+    http:
+      paths:
+      - backend:
+          service:
+            name: registry
+            port:
+              number: 5000
+        path: /v2
+        pathType: ImplementationSpecific
+      - backend:
+          service:
+            name: registry-ui
+            port:
+              number: 80
+        path: /
+        pathType: ImplementationSpecific
