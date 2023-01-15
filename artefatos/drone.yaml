@@ -7,6 +7,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: drone
+  namespace: cicd
 data:
   DRONE_ADMIN: ${DRONE_ADMIN}
   DRONE_GITEA_CLIENT_ID: "alterar"
@@ -25,6 +26,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: drone-runner
+  namespace: cicd
 data:
   DRONE_DEBUG: "true"
   DRONE_REGISTRY_PLUGIN_ENDPOINT: http://${REGISTRY_URL}:5000
@@ -142,7 +144,7 @@ apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
   name: letsencrypt
-  namespace: registry
+  namespace: cicd
 spec:
   acme:
     server: https://acme-v02.api.letsencrypt.org/directory
@@ -157,8 +159,8 @@ spec:
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: registry
-  namespace: registry
+  name: drone
+  namespace: cicd
 spec:
   secretName: drone-certificate
   issuerRef:
@@ -169,18 +171,20 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: registry
-  namespace: registry
+  name: drone
+  namespace: cicd
   annotations:
     kubernetes.io/ingress.class: "nginx"
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
     cert-manager.io/issuer: "letsencrypt"
+    nginx.ingress.kubernetes.io/affinity: "cookie"
     nginx.ingress.kubernetes.io/proxy-body-size: "300m"
     nginx.ingress.kubernetes.io/proxy-connect-timeout: "1800"
     nginx.ingress.kubernetes.io/proxy-next-upstream-timeout: "1800"
     nginx.ingress.kubernetes.io/proxy-read-timeout: "1800"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "1800"
+    nginx.ingress.kubernetes.io/session-cookie-hash: "sha1"
 spec:
   tls:
   - hosts:
@@ -190,9 +194,11 @@ spec:
   - host: ${DRONE_SERVER_HOST}
     http:
       paths:
-      - backend:
+      - pathType: Prefix
+        path: "/"
+        backend:
           service:
-            name: registry
+            name: drone
             port:
               number: 80
         path: /

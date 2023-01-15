@@ -1,7 +1,10 @@
 #!/bin/bash
 
 echo -n "Instalando o K3S "
-curl -sfL https://get.k3s.io |  INSTALL_K3S_VERSION=${K3S_VERSION} INSTALL_K3S_EXEC="--disable traefik" sh -s - server > /tmp/k3sinstall 2>&1
+# For install NGINX Ingress
+#curl -sfL https://get.k3s.io |  INSTALL_K3S_VERSION=${K3S_VERSION} INSTALL_K3S_EXEC="--disable traefik" sh -s - server > /tmp/k3sinstall 2>&1
+# For install Traefik
+curl -sfL https://get.k3s.io |  INSTALL_K3S_VERSION=${K3S_VERSION} sh -s - server > /tmp/k3sinstall 2>&1
 if [ ! $? = 0 ]; then
     echo "[ERROR]"
     echo

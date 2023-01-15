@@ -13,11 +13,11 @@ export REGISTRY_URL
 
 echo -n "Instalando serviço do Drone"
 envsubst < artefatos/drone.yaml > /tmp/drone.yaml
-rm -f /tmp/drone.yaml
 kubectl apply -f /tmp/drone.yaml > /tmp/droneinstall.log 2>&1
+rm -f /tmp/drone.yaml
 if [ $? = 0 ]; then
     echo "[OK]"
-    kubectl -n drone rollout status deploy/drone
+    kubectl -n cicd rollout status deploy/drone
 else
     echo "[ERRO]"
     echo

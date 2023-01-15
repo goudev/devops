@@ -116,7 +116,7 @@ spec:
     protocol: TCP
     targetPort: 5000
   selector:
-    app: registry-ui
+    app: registry
     version: v1
   sessionAffinity: None
   type: ClusterIP
