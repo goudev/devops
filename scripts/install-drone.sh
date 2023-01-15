@@ -17,7 +17,7 @@ delete -f /tmp/drone.yaml
 kubectl apply -f /tmp/drone.yaml > /tmp/droneinstall.log 2>&1
 if [ $? = 0 ]; then
     echo "[OK]"
-    kubectl -n git rollout status deploy/drone
+    kubectl -n drone rollout status deploy/drone
 else
     echo "[ERRO]"
     echo
