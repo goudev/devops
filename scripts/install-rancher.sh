@@ -45,7 +45,7 @@ fi
 
 
 echo -n "Instalando Rancher "
-helm install rancher rancher-${RANCHER_VERSION}/rancher --namespace cattle-system --set hostname=${RANCHER_DOMAIN} --set bootstrapPassword=${RANCHER_PASSWORD} --set ingress.tls.source=letsEncrypt --set letsEncrypt.email=${RANCHER_EMAIL_CERTDOMAIN} --set letsEncrypt.ingress.class=nginx > /tmp/rancherinstall.log 2>&1
+helm install rancher rancher-${RANCHER_VERSION}/rancher --namespace cattle-system --set hostname=${RANCHER_DOMAIN} --set bootstrapPassword=${RANCHER_PASSWORD} --set ingress.tls.source=letsEncrypt --set letsEncrypt.email=${LETSENCRYPT_EMAIL} --set letsEncrypt.ingress.class=nginx > /tmp/rancherinstall.log 2>&1
 if [ $? = 0 ]; then
     echo "[OK]"
     kubectl -n cattle-system rollout status deploy/rancher
